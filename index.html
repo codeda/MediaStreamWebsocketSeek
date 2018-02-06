@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MediaStreamWebsocketSeek</title>
+</head>
+<body>
+<div>
+    <video controls width="80%"></video>
+    <div><button onclick="seekRand()">Seek</button>
+        <span>last seek</span>
+        <span class="last-seek">0</span>
+        <span>last request time</span>
+        <span class="last-req-time">0</span>
+        <span>last seek time</span>
+        <span class="last-seek-time">0</span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    const SEEK_VIDEO='seekVideo';
+    const SEEK_VIDEO_END='seekVideoEnd';
+    const SEEK_READY='seekReady';
+
+    var lastSeek=0;
+    var lastSeekDate;
+    var lastReqDate;
+    var sourceBuffer;
+    var serverReady=false;
+    var video = document.querySelector('video');
+    var lastReqTimeSpan=document.getElementsByClassName('last-req-time')[0];
+    var lastSeekSpan=document.getElementsByClassName('last-seek')[0];
+    var lastSeekTimeSpan=document.getElementsByClassName('last-seek-time')[0];
+    var mimeCodec = 'video/mp4; codecs="avc1.42C01E, mp4a.40.2"';
+    if (!window.MediaSource) {
+        console.error('No Media Source API available');
+    }
+    var maxSeek=32;
+    var sourceBufferQueue=[];
+    console.log(mimeCodec,MediaSource.isTypeSupported(mimeCodec));
+    video.addEventListener('error',function(e){
+        console.log('video error', e.target.error);
+        doSeek();
+    });
+
+    video.addEventListener('canplay', function () {
+        if(lastSeekDate)
+        {
+            lastSeekTimeSpan.innerHTML=new Date()-lastSeekDate;
+            lastSeekDate=null;
+
+        }
+        var playPromise=video.play();
+        if (playPromise !== undefined) {
+            playPromise.then(function() {
+            }).catch(function(error) {
+                console.log(error);
+            });
+        }
+    });
+    var ms;
+    var restartBuffer=function(){
+        sourceBufferQueue=[];
+        serverReady=false;
+        ms = new MediaSource();
+        ms.addEventListener('sourceopen', function(e) {
+
+            sourceBuffer = ms.addSourceBuffer(mimeCodec);
+
+
+            sourceBuffer.addEventListener('update', function() {
+                if (sourceBufferQueue.length > 0 && !sourceBuffer.updating) {
+                    sourceBuffer.appendBuffer(sourceBufferQueue.shift());
+                }
+            });
+
+        }, false);
+        video.src = window.URL.createObjectURL(ms);
+
+    };
+
+    restartBuffer();
+
+
+
+
+
+    var ws = new WebSocket(window.location.protocol.replace('http','ws')+'//' + window.location.hostname+(window.location.port?(':'+window.location.port):''), 'echo-protocol');
+    ws.binaryType = 'arraybuffer';
+    ws.json=function(o){
+        var message=JSON.stringify(o);
+        console.log('Sending:',message);
+        ws.send(message);
+    };
+    ws.addEventListener('message', function(e) {
+
+        if (typeof e.data !== 'string') {
+            if(serverReady)
+            {
+                console.log('new chunk');
+
+                var chunk=e.data;
+                if(lastReqDate)
+                {
+                    lastReqTimeSpan.innerHTML=new Date()-lastReqDate;
+                    lastReqDate=null;
+                }
+                if (!ms || ms.readyState != 'open' || !sourceBuffer || sourceBuffer.updating || sourceBufferQueue.length > 0) {
+                    sourceBufferQueue.push(chunk);
+                } else {
+                    sourceBuffer.appendBuffer(chunk);
+                }
+            }
+            else
+            {
+                console.log('not ready');
+
+            }
+
+        }
+        else {
+            console.log(e.data);
+            var json=JSON.parse(e.data);
+            if(json.action==SEEK_READY && json.seek==lastSeek)
+            {
+                serverReady=true;
+            }
+        }
+    }, false);
+    ws.onopen = function () {
+        if (ws.readyState === 1) {
+            console.log("Connection is made");
+            ws.json({action:SEEK_VIDEO,seek:lastSeek});
+
+        }
+    };
+    function seekRand(){
+        lastSeek=Math.random()*maxSeek;
+        doSeek();
+    }
+    function doSeek(){
+        lastSeekSpan.innerHTML=lastSeek;
+        lastSeekDate=new Date();
+        lastReqDate=new Date();
+        restartBuffer();
+        ws.json({action:SEEK_VIDEO,seek:lastSeek});
+    }
+</script>
+</body>
+</html>

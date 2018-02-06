@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/ffmpeg -ss $1 -i $2 -s $3 -g 10 -strict experimental -b:a $4 -ar $5 -acodec $6 -vcodec $7 -b:v $8 -r $9 -pix_fmt ${10} -color_primaries smpte170m -color_trc bt709 -colorspace smpte170m -f ${11} -movflags frag_keyframe+empty_moov+default_base_moof -profile:v baseline -level 3.0 - 2>/tmp/testMS_${1}.log

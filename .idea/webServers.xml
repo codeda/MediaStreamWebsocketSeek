@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="c59bbbed-4f3a-4f59-b241-8654ab83dfea" name="vts.codeda.com" url="https://vts.codeda.com">
+        <fileTransfer host="vts.codeda.com" port="22" privateKey="D:\Users\User\WebstormProjects\MediaStreamWebsocketSeek\deploy\vts_automatic.pem" rootFolder="/home/ubuntu" accessType="SFTP" username="ubuntu" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

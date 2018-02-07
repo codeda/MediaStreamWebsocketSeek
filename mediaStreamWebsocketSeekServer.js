@@ -16,7 +16,7 @@ const PREVIEW_AUDIO_BITRATE = "64k";
 const PREVIEW_VIDEO_BITRATE = "960k";
 const AUDIO_FREQUENCY = 48000;
 const PIXEL_FORMAT = 'yuv420p';
-const FPS = 24;
+const FPS = 60;
 const SCRIPTS_PATH='linux';
 
 var options = {

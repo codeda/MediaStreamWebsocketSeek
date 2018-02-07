@@ -6,10 +6,12 @@
 </head>
 <body>
 <div>
-    <video controls width="80%"></video>
+    <video></video>
     <div><button onclick="seekRand()">Seek</button>
         <span>last seek</span>
         <span class="last-seek">0</span>
+        <span>last ready time</span>
+        <span class="last-ready-time">0</span>
         <span>last request time</span>
         <span class="last-req-time">0</span>
         <span>last seek time</span>
@@ -25,12 +27,15 @@
     var lastSeek=0;
     var lastSeekDate;
     var lastReqDate;
+    var lastReadyDate;
     var sourceBuffer;
     var serverReady=false;
     var video = document.querySelector('video');
     var lastReqTimeSpan=document.getElementsByClassName('last-req-time')[0];
     var lastSeekSpan=document.getElementsByClassName('last-seek')[0];
     var lastSeekTimeSpan=document.getElementsByClassName('last-seek-time')[0];
+    var lastReadyTimeSpan=document.getElementsByClassName('last-ready-time')[0];
+
     var mimeCodec = 'video/mp4; codecs="avc1.42C01E, mp4a.40.2"';
     if (!window.MediaSource) {
         console.error('No Media Source API available');
@@ -124,6 +129,11 @@
             if(json.action==SEEK_READY && json.seek==lastSeek)
             {
                 serverReady=true;
+                if(lastReadyDate)
+                {
+                    lastReadyTimeSpan.innerHTML=new Date()-lastReadyDate;
+                    lastReadyDate=null;
+                }
             }
         }
     }, false);
@@ -142,6 +152,7 @@
         lastSeekSpan.innerHTML=lastSeek;
         lastSeekDate=new Date();
         lastReqDate=new Date();
+        lastReadyDate=new Date();
         restartBuffer();
         ws.json({action:SEEK_VIDEO,seek:lastSeek});
     }

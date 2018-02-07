@@ -13,7 +13,7 @@
   "scripts": {
     "start": "sudo node ./mediaStreamWebsocketSeekServer.js  >/tmp/mediaStreamWebsocketSeekServer.log 2>&1 &",
     "test": "sudo node ./mediaStreamWebsocketSeekServer.js",
-    "kill": "ps -ef | grep codedaComServer.js | grep -v grep | awk '{print $2}' | xargs sudo kill -9",
+    "kill": "ps -ef | grep mediaStreamWebsocketSeekServer.js | grep -v grep | awk '{print $2}' | xargs sudo kill -9",
     "restart": "npm run kill & npm start"
   }
 }
